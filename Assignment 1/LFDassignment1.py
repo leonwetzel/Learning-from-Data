@@ -4,6 +4,7 @@ from sklearn.pipeline import Pipeline
 
 from sklearn.metrics import accuracy_score
 
+
 # COMMENT THIS
 def read_corpus(corpus_file, use_sentiment):
     documents = []
@@ -16,20 +17,22 @@ def read_corpus(corpus_file, use_sentiment):
 
             if use_sentiment:
                 # 2-class problem: positive vs negative
-                labels.append( tokens[1] )
+                labels.append(tokens[1])
             else:
                 # 6-class problem: books, camera, dvd, health, music, software
-                labels.append( tokens[0] )
+                labels.append(tokens[0])
 
     return documents, labels
-    
+
+
 # a dummy function that just returns its input
 def identity(x):
     return x
 
+
 # COMMENT THIS
 X, Y = read_corpus('trainset.txt', use_sentiment=True)
-split_point = int(0.75*len(X))
+split_point = int(0.75 * len(X))
 Xtrain = X[:split_point]
 Ytrain = Y[:split_point]
 Xtest = X[split_point:]
@@ -41,16 +44,15 @@ tfidf = True
 # we use a dummy function as tokenizer and preprocessor,
 # since the texts are already preprocessed and tokenized.
 if tfidf:
-    vec = TfidfVectorizer(preprocessor = identity,
-                          tokenizer = identity)
+    vec = TfidfVectorizer(preprocessor=identity,
+                          tokenizer=identity)
 else:
-    vec = CountVectorizer(preprocessor = identity,
-                          tokenizer = identity)
+    vec = CountVectorizer(preprocessor=identity,
+                          tokenizer=identity)
 
 # combine the vectorizer with a Naive Bayes classifier
-classifier = Pipeline( [('vec', vec),
-                        ('cls', MultinomialNB())] )
-
+classifier = Pipeline([('vec', vec),
+                       ('cls', MultinomialNB())])
 
 # COMMENT THIS
 classifier.fit(Xtrain, Ytrain)
@@ -60,4 +62,3 @@ Yguess = classifier.predict(Xtest)
 
 # COMMENT THIS
 print(accuracy_score(Ytest, Yguess))
-
