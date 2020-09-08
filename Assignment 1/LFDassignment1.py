@@ -1,9 +1,13 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
+import numpy as np
+import pandas as pd
 
+pd.set_option("display.max_columns", None)
 
 def read_corpus(corpus_file, use_sentiment):
     """
@@ -47,13 +51,13 @@ if __name__ == '__main__':
     file and predicts either the sentiment type
     or the genre.
     """
-    X, Y = read_corpus('trainset.txt', use_sentiment=True)
+    X, Y = read_corpus('trainset.txt', use_sentiment=False)
     split_point = int(0.75 * len(X))
     Xtrain = X[:split_point]
     Ytrain = Y[:split_point]
     Xtest = X[split_point:]
     Ytest = Y[split_point:]
-
+    labels = np.unique(Ytest)
     # let's use the TF-IDF vectorizer
     tfidf = True
 
@@ -80,3 +84,8 @@ if __name__ == '__main__':
 
     # Prints the scores.
     print(accuracy_score(Ytest, Yguess))
+    scores = precision_recall_fscore_support(Ytest, Yguess, labels=labels)
+    print(pd.DataFrame(scores, columns=labels, index=["Precision","Recall","F-score","Support"]))
+    # Print confusion matrix.
+    confusion_matrix = confusion_matrix(Ytest, Yguess, labels=labels)
+    print(pd.DataFrame(confusion_matrix, index=labels, columns=labels))
