@@ -12,6 +12,7 @@ import pandas as pd
 
 pd.set_option("display.max_columns", None)
 
+
 def read_corpus(corpus_file, use_sentiment):
     """
     Reads information from a given file, using sentiment if indicated.
@@ -48,15 +49,18 @@ def identity(x):
     return x
 
 
-if __name__ == '__main__':
+def main():
     """
-    This script reads text from a given
-    file and predicts either the sentiment type
-    or the genre.
-    """
-    if sys.argv[1] == "-s":
-        use_sentiment = True
-    else:
+        This script reads text from a given
+        file and predicts either the sentiment type
+        or the genre.
+        """
+    try:
+        if sys.argv[1] == "-s":
+            use_sentiment = True
+        else:
+            use_sentiment = False
+    except IndexError:
         use_sentiment = False
 
     X, Y = read_corpus('trainset.txt', use_sentiment)
@@ -66,6 +70,7 @@ if __name__ == '__main__':
     Xtest = X[split_point:]
     Ytest = Y[split_point:]
     labels = np.unique(Ytest)
+
     # let's use the TF-IDF vectorizer
     tfidf = True
 
@@ -93,7 +98,12 @@ if __name__ == '__main__':
     # Prints the scores.
     print(accuracy_score(y_true=Ytest, y_pred=Yguess))
     scores = precision_recall_fscore_support(Ytest, Yguess, labels=labels)
-    print(pd.DataFrame(scores, columns=labels, index=["Precision","Recall","F-score","Support"]))
+    print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]))
+
     # Print confusion matrix.
-    confusion_matrix = confusion_matrix(Ytest, Yguess, labels=labels)
-    print(pd.DataFrame(confusion_matrix, index=labels, columns=labels))
+    matrix = confusion_matrix(Ytest, Yguess, labels=labels)
+    print(pd.DataFrame(matrix, index=labels, columns=labels))
+
+
+if __name__ == '__main__':
+    main()
