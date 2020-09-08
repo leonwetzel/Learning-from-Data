@@ -5,8 +5,15 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
 
 
-# COMMENT THIS
 def read_corpus(corpus_file, use_sentiment):
+    """
+    Reads information from a given file, using sentiment if indicated.
+    We assume a provided file consists of 1) a genre, 2) a sentiment type
+    and 3) a review.
+    :param corpus_file:
+    :param use_sentiment:
+    :return:
+    """
     documents = []
     labels = []
     with open(corpus_file, encoding='utf-8') as f:
@@ -25,40 +32,51 @@ def read_corpus(corpus_file, use_sentiment):
     return documents, labels
 
 
-# a dummy function that just returns its input
 def identity(x):
+    """
+    A dummy function that just returns its input.
+    :param x:
+    :return:
+    """
     return x
 
 
-# COMMENT THIS
-X, Y = read_corpus('trainset.txt', use_sentiment=True)
-split_point = int(0.75 * len(X))
-Xtrain = X[:split_point]
-Ytrain = Y[:split_point]
-Xtest = X[split_point:]
-Ytest = Y[split_point:]
+if __name__ == '__main__':
+    """
+    This script reads text from a given
+    file and predicts either the sentiment type
+    or the genre.
+    """
+    X, Y = read_corpus('trainset.txt', use_sentiment=True)
+    split_point = int(0.75 * len(X))
+    Xtrain = X[:split_point]
+    Ytrain = Y[:split_point]
+    Xtest = X[split_point:]
+    Ytest = Y[split_point:]
 
-# let's use the TF-IDF vectorizer
-tfidf = True
+    # let's use the TF-IDF vectorizer
+    tfidf = True
 
-# we use a dummy function as tokenizer and preprocessor,
-# since the texts are already preprocessed and tokenized.
-if tfidf:
-    vec = TfidfVectorizer(preprocessor=identity,
-                          tokenizer=identity)
-else:
-    vec = CountVectorizer(preprocessor=identity,
-                          tokenizer=identity)
+    # we use a dummy function as tokenizer and preprocessor,
+    # since the texts are already preprocessed and tokenized.
+    if tfidf:
+        vec = TfidfVectorizer(preprocessor=identity,
+                              tokenizer=identity)
+    else:
+        vec = CountVectorizer(preprocessor=identity,
+                              tokenizer=identity)
 
-# combine the vectorizer with a Naive Bayes classifier
-classifier = Pipeline([('vec', vec),
-                       ('cls', MultinomialNB())])
+    # combine the vectorizer with a Naive Bayes classifier
+    classifier = Pipeline([('vec', vec),
+                           ('cls', MultinomialNB())])
 
-# COMMENT THIS
-classifier.fit(Xtrain, Ytrain)
+    # Trains the classifier, by feeding documents (X)
+    # and labels (y).
+    classifier.fit(Xtrain, Ytrain)
 
-# COMMENT THIS  
-Yguess = classifier.predict(Xtest)
+    # Classifier makes a prediction, based on
+    # a test set of documents.
+    Yguess = classifier.predict(Xtest)
 
-# COMMENT THIS
-print(accuracy_score(Ytest, Yguess))
+    # Prints the scores.
+    print(accuracy_score(Ytest, Yguess))
