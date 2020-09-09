@@ -66,6 +66,7 @@ def main():
         # catch cases where no flag is given
         use_sentiment = False
 
+    # Load and split dataset
     X, Y = read_corpus('trainset.txt', use_sentiment)
     split_point = int(0.75 * len(X))
     Xtrain = X[:split_point]
@@ -108,11 +109,9 @@ def main():
     print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
 
     # Calculate prior probabilities.
-    counter = Counter()
-    for word in Ytest:
-        counter[word] += 1
-
     print("Prior probability per class")
+    counter = Counter([word for word in Ytest])
+
     for label, count in counter.items():
         prior_proba = count / len(Ytest)
         print(label, prior_proba)
@@ -121,7 +120,7 @@ def main():
     # Calculate posterior probabilities
     print("Posterior probability per class")
     for label, log_prior in zip(classifier[1].classes_, classifier[1].feature_log_prob_):
-        print(label, log_prior)
+        print(label, max(log_prior))
 
 
 if __name__ == '__main__':
