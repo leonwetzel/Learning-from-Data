@@ -118,6 +118,7 @@ def main():
     print()
 
     # Calculate posterior probabilities
+    # FIXME: posterior waarden berekenen i.p.v. prior proba's
     print("Posterior probability per class")
     for label, log_prior in zip(classifier[1].classes_, classifier[1].feature_log_prob_):
         print(label, max(log_prior))
