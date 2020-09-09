@@ -102,12 +102,12 @@ def main():
     # Prints the scores.
     print("Overall accuracy", accuracy_score(y_true=Ytest, y_pred=Yguess), '\n')
     scores = precision_recall_fscore_support(Ytest, Yguess, labels=labels)
-    print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]), '\n')
+    print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]).drop(["Support"]), '\n')
 
     # Print confusion matrix.
     matrix = confusion_matrix(Ytest, Yguess, labels=labels)
     print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
-
+    
     # Calculate prior probabilities.
     print("Prior probability per class")
     counter = Counter([word for word in Ytest])
