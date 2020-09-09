@@ -1,4 +1,5 @@
 import sys
+from collections import Counter
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -51,16 +52,18 @@ def identity(x):
 
 def main():
     """
-        This script reads text from a given
-        file and predicts either the sentiment type
-        or the genre.
-        """
+    This script reads text from a given
+    file and predicts either the sentiment type
+    or the genre, based on a provided flag setting '-s'.
+    """
     try:
         if sys.argv[1] == "-s":
             use_sentiment = True
         else:
+            print("Invalid flag! Sentiment will not be used.")
             use_sentiment = False
     except IndexError:
+        # catch cases where no flag is given
         use_sentiment = False
 
     X, Y = read_corpus('trainset.txt', use_sentiment)
@@ -71,10 +74,10 @@ def main():
     Ytest = Y[split_point:]
     labels = np.unique(Ytest)
 
-    # let's use the TF-IDF vectorizer
+    # Let's use the TF-IDF vectorizer
     tfidf = True
 
-    # we use a dummy function as tokenizer and preprocessor,
+    # We use a dummy function as tokenizer and preprocessor,
     # since the texts are already preprocessed and tokenized.
     if tfidf:
         vec = TfidfVectorizer(preprocessor=identity,
@@ -83,7 +86,7 @@ def main():
         vec = CountVectorizer(preprocessor=identity,
                               tokenizer=identity)
 
-    # combine the vectorizer with a Naive Bayes classifier
+    # Combine the vectorizer with a Naive Bayes classifier
     classifier = Pipeline([('vec', vec),
                            ('cls', MultinomialNB())])
 
@@ -92,17 +95,33 @@ def main():
     classifier.fit(Xtrain, Ytrain)
 
     # Classifier makes a prediction, based on
-    # a test set of documents.
+    # a test sample of documents.
     Yguess = classifier.predict(Xtest)
 
     # Prints the scores.
-    print(accuracy_score(y_true=Ytest, y_pred=Yguess))
+    print("Overall accuracy", accuracy_score(y_true=Ytest, y_pred=Yguess), '\n')
     scores = precision_recall_fscore_support(Ytest, Yguess, labels=labels)
-    print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]))
+    print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]), '\n')
 
     # Print confusion matrix.
     matrix = confusion_matrix(Ytest, Yguess, labels=labels)
-    print(pd.DataFrame(matrix, index=labels, columns=labels))
+    print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
+
+    # Calculate prior probabilities.
+    counter = Counter()
+    for word in Ytest:
+        counter[word] += 1
+
+    print("Prior probability per class")
+    for label, count in counter.items():
+        prior_proba = count / len(Ytest)
+        print(label, prior_proba)
+    print()
+
+    # Calculate posterior probabilities
+    print("Posterior probability per class")
+    for label, log_prior in zip(classifier[1].classes_, classifier[1].feature_log_prob_):
+        print(label, log_prior)
 
 
 if __name__ == '__main__':
