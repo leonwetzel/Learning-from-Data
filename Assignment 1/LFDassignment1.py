@@ -116,12 +116,32 @@ def main():
         prior_proba = count / len(Ytest)
         print(label, prior_proba)
     print()
-
-    # Calculate posterior probabilities
-    # FIXME: posterior waarden berekenen i.p.v. prior proba's
+        
     print("Posterior probability per class")
-    for label, log_prior in zip(classifier[1].classes_, classifier[1].feature_log_prob_):
-        print(label, max(log_prior))
+    """
+    According to https://sebastianraschka.com/Articles/2014_naive_bayes_1.html:
+    - posterior_proba = (conditional_proba * prior_proba) / evidence
+    - For prior proba: see above!
+    
+    According to the lecture slides:
+    - posterior_proba = p(c_j|i) =
+     (p(i|c_j) * p(c_j)) /
+     ([p(c_j) * p(i|c_j)] + [p(-c_j) * p(i|-c_j)])
+    """
+    for label, count in counter.items():
+        prior_proba = count / len(Ytest)
+        false_pos = matrix.sum(axis=0) - np.diag(matrix)
+        false_neg = matrix.sum(axis=1) - np.diag(matrix)
+        true_pos = np.diag(matrix)
+        true_neg = matrix.sum() - (false_pos + false_neg + true_pos)
+        # originele implementatie
+        posterior_proba = (true_pos * prior_proba) /\
+                          ((true_pos * prior_proba) + ((1 - prior_proba) * true_neg))
+
+        # leons implementatie
+        posterior_proba = (true_pos * prior_proba) /\
+                          ((prior_proba * true_pos) + (true_neg * false_pos))
+        print(label, max(posterior_proba))
 
 
 if __name__ == '__main__':
