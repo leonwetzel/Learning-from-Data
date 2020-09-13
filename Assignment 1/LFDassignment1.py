@@ -129,18 +129,18 @@ def main():
      ([p(c_j) * p(i|c_j)] + [p(-c_j) * p(i|-c_j)])
     """
     for label, count in counter.items():
+        # calculate prior probability
         prior_proba = count / len(Ytest)
+
+        # determine values from confusion matrix
         false_pos = matrix.sum(axis=0) - np.diag(matrix)
         false_neg = matrix.sum(axis=1) - np.diag(matrix)
         true_pos = np.diag(matrix)
         true_neg = matrix.sum() - (false_pos + false_neg + true_pos)
-        # originele implementatie
+
+        # calculate posterior probability
         posterior_proba = (true_pos * prior_proba) /\
                           ((true_pos * prior_proba) + ((1 - prior_proba) * true_neg))
-
-        # leons implementatie
-        posterior_proba = (true_pos * prior_proba) /\
-                          ((prior_proba * true_pos) + (true_neg * false_pos))
         print(label, max(posterior_proba))
 
 
