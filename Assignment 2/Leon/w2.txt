@@ -1,0 +1,26 @@
+- DT: Is the tree a 100% accurate model of your data? If not, why not? And what are the consequences?
+No, the tree is not a 100% accurate model of the data. For example, one leaf is not pure and can lead to both a yes and a no given the colour yellow and a round shape.
+
+- DT: What is pruning, and what is it used for?
+Pruning is synonymous for reducing the size of the tree in a bottum-up fashion. Pruning a tree can help to make generalisation possible, limiting the risks of overfitting. It can also improve the performance of a system, since the task is limited and the amount of leaves is reduced.
+
+- DT: What parameters can you change in sklearn that will affect the structure of a tree? What do they do?
+Both the maximum number of leaves (in sklearn: max_leaf_nodes) and the minimum number of samples per leaf (in sklearn: min_samples_leaf) can affect the structure of a tree. max_leaf_nodes prevents a tree from growing to infinity
+
+- DT: By changing such parameters, do results change? Describe how they do, in case.
+We changed the parameter values for max_leaf_nodes and min_samples_leaf dynamically by using GridSearchCV, in order to find the best parameter combination.
+
+- KNN: Is acuracy better with a lower of higher K?
+
+
+- KNN: Does class performance change substantially with varying values of K?
+
+
+- KNN: How does changing K affect the bias/variance trade off?
+
+
+- Comparison: Compare the time it takes to train and test a KNN, a DT and a Naive Bayes, and comment on the differences.
+
+
+- What is your best model? Please specify what algorithm and what features you have eventually chosen, and why?
+
