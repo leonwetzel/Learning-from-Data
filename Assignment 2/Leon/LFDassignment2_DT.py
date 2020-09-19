@@ -86,10 +86,6 @@ def main():
         vec = CountVectorizer(preprocessor=identity,
                               tokenizer=identity)
 
-    # # Combine the vectorizer with a Naive Bayes classifier
-    # classifier = Pipeline([('vec', vec),
-    #                        ('cls', MultinomialNB())])
-
     parameters = {
         'clf__max_leaf_nodes': [None, 75, 65, 60, 50],
         'clf__min_samples_leaf': [1, 2, 3, 0.1, 0.2],
@@ -100,8 +96,9 @@ def main():
         ('clf', DecisionTreeClassifier())
     ])
 
-    classifier = GridSearchCV(pipeline, parameters, n_jobs=-1,
-                              cv=5)
+    classifier = GridSearchCV(pipeline, parameters,
+                              scoring='f1_weighted',
+                              n_jobs=-1, cv=5)
 
     # Trains the classifier, by feeding documents (X)
     # and labels (y).

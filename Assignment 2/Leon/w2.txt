@@ -8,10 +8,10 @@ Pruning is synonymous for reducing the size of the tree in a bottum-up fashion. 
 Both the maximum number of leaves (in sklearn: max_leaf_nodes) and the minimum number of samples per leaf (in sklearn: min_samples_leaf) can affect the structure of a tree. max_leaf_nodes prevents a tree from growing to infinity
 
 - DT: By changing such parameters, do results change? Describe how they do, in case.
-We changed the parameter values for max_leaf_nodes and min_samples_leaf dynamically by using GridSearchCV, in order to find the best parameter combination.
+We changed the parameter values for max_leaf_nodes and min_samples_leaf dynamically by using GridSearchCV, in order to find the best parameter combination. For max_leaf_nodes, we tested with the values [None, 75, 65, 60, 50] and for min_samples_leaf we tested with the values [1, 2, 3, 0.1, 0.2]. The best parameter combination appeared to be {'clf__max_leaf_nodes': 50, 'clf__min_samples_leaf': 3} for the given parameter values, using a weighted F1-score as scoring parameter. Other parameter combinations tended to achieve lower F1-scores.
 
 - KNN: Is acuracy better with a lower of higher K?
-
+Using the same GridSearchCV setup as the last question, we can conclude that accuracy is at its best when K it has a rather higher value.
 
 - KNN: Does class performance change substantially with varying values of K?
 
