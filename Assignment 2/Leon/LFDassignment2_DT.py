@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 from collections import Counter
 
 from sklearn.feature_extraction.text import CountVectorizer, \
@@ -100,9 +101,16 @@ def main():
                               scoring='f1_weighted',
                               n_jobs=-1, cv=5)
 
+    # set timer
+    t0 = time.time()
+
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
     classifier.fit(Xtrain, Ytrain)
+
+    # determine training time
+    train_time = time.time() - t0
+    print("Training time for model: ", train_time, '\n')
 
     # Classifier makes a prediction, based on
     # a test sample of documents.

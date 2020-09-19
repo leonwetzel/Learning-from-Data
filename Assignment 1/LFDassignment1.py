@@ -1,10 +1,12 @@
 import sys
+import time
 from collections import Counter
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, \
+    precision_score, recall_score, f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
@@ -91,16 +93,30 @@ def main():
     classifier = Pipeline([('vec', vec),
                            ('cls', MultinomialNB())])
 
+    t0 = time.time()
+
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
     classifier.fit(Xtrain, Ytrain)
+
+    current_time = time.time() - t0
+    print(current_time)
 
     # Classifier makes a prediction, based on
     # a test sample of documents.
     Yguess = classifier.predict(Xtest)
 
     # Prints the scores.
-    print("Overall accuracy", accuracy_score(y_true=Ytest, y_pred=Yguess), '\n')
+    print("Overall scores")
+    print("Accuracy", accuracy_score(y_true=Ytest, y_pred=Yguess))
+    print("Precision", precision_score(y_true=Ytest, y_pred=Yguess,
+                                       average='weighted'))
+    print("Recall", recall_score(y_true=Ytest, y_pred=Yguess,
+                                 average='weighted'))
+    print("F1-score", f1_score(y_true=Ytest, y_pred=Yguess,
+                                 average='weighted'))
+    print()
+
     scores = precision_recall_fscore_support(Ytest, Yguess, labels=labels)
     print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]).drop(["Support"]), '\n')
 

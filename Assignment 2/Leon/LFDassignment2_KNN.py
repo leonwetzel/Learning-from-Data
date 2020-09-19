@@ -1,16 +1,18 @@
 import sys
 import os
+import time
 from collections import Counter
 
 from sklearn.feature_extraction.text import CountVectorizer, \
     TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import precision_recall_fscore_support, \
-    confusion_matrix, accuracy_score, recall_score, precision_score,\
-    f1_score
+    confusion_matrix, accuracy_score, recall_score, precision_score, \
+    f1_score, make_scorer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
+
+import matplotlib.pyplot as plt
 
 import numpy as np
 import pandas as pd
@@ -87,7 +89,7 @@ def main():
                               tokenizer=identity)
 
     parameters = {
-        'clf__n_neighbors': [1, 3, 5, 7, 9, 11, 13, 15, 21, 27, 35],
+        'clf__n_neighbors': [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27],
     }
 
     pipeline = Pipeline([
@@ -95,13 +97,26 @@ def main():
         ('clf', KNeighborsClassifier())
     ])
 
+    # set up scorer, so we can compare both F1 and accuracy scores
+    scoring = {'F1': make_scorer(f1_score, average='weighted'),
+               'Accuracy': make_scorer(accuracy_score)}
+
     classifier = GridSearchCV(pipeline, parameters,
-                              scoring='accuracy',
-                              n_jobs=-1, cv=5)
+                              scoring=scoring,
+                              n_jobs=-1, cv=5,
+                              return_train_score=False,
+                              refit='F1')
+
+    # set timer
+    t0 = time.time()
 
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
     classifier.fit(Xtrain, Ytrain)
+
+    # determine training time
+    train_time = time.time() - t0
+    print("Training time for model: ", train_time, '\n')
 
     # Classifier makes a prediction, based on
     # a test sample of documents.
@@ -155,6 +170,23 @@ def main():
         print(label, max(posterior_proba))
 
     print(f"Best parameter combination: {classifier.best_params_}")
+    ks = [score['clf__n_neighbors'] for score
+          in classifier.cv_results_['params']]
+
+    # scores = pd.DataFrame(classifier.cv_results_)
+    relevant_metrics = pd.DataFrame(classifier.cv_results_)[
+        ['mean_test_F1','mean_test_Accuracy']
+    ]
+    relevant_metrics['k'] = ks
+
+    print(relevant_metrics)
+
+    plt.figure()
+    ax = plt.gca()
+    relevant_metrics.plot(kind='line', x='k', y='mean_test_F1', ax=ax)
+    relevant_metrics.plot(kind='line', x='k', y='mean_test_Accuracy', color='red', ax=ax)
+    plt.savefig('results.png')
+    plt.show()
 
 
 if __name__ == '__main__':
