@@ -3,13 +3,15 @@ import time
 import os
 from collections import Counter
 
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer,\
+    TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import precision_recall_fscore_support, \
-    precision_score, recall_score, f1_score
+    precision_score, recall_score, f1_score, make_scorer
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 
 import numpy as np
 import pandas as pd
@@ -20,8 +22,8 @@ pd.set_option("display.max_columns", None)
 def read_corpus(corpus_file):
     """
     Reads information from a given file, using sentiment if indicated.
-    We assume a provided file consists of 1) a genre, 2) a sentiment type
-    and 3) a review.
+    We assume a provided file consists of 1) a genre, 2) a sentiment
+    type and 3) a review.
     :param corpus_file:
     :param use_sentiment:
     :return:
@@ -34,7 +36,8 @@ def read_corpus(corpus_file):
 
             documents.append(tokens[3:])
 
-            # 6-class problem: books, camera, dvd, health, music, software
+            # 6-class problem:
+            # books, camera, dvd, health, music, software
             labels.append(tokens[0])
 
     return documents, labels
@@ -96,6 +99,32 @@ def main():
         ('cls', MultinomialNB())
     ])
 
+    parameters = {
+        'vec__strip_accents': ['ascii', 'unicode', None],
+        'vec__lowercase': [False, True],
+        'vec__analyzer': ['word', 'char', 'char_wb'],
+        'vec__stop_words': ['english', None],
+        'vec__ngram_range': [(1, 1), (1, 2), (1, 3)],
+        'vec__norm': ['l1', 'l2'],
+        'clf__alpha': [1.0, 0, 0.5, 0.75],
+    }
+
+    pipeline = Pipeline([
+        ('vec', vec),
+        ('clf', MultinomialNB())
+    ])
+
+    # set up scorer, so we can compare both F1 and accuracy scores
+    scoring = {'F1': make_scorer(f1_score, average='weighted'),
+               'Accuracy': make_scorer(accuracy_score)}
+
+    classifier = GridSearchCV(pipeline, parameters,
+                              scoring=scoring,
+                              n_jobs=-1, cv=5,
+                              return_train_score=False,
+                              refit='F1',
+                              verbose=100)
+
     t0 = time.time()
 
     # Trains the classifier, by feeding documents (X)
@@ -120,8 +149,11 @@ def main():
                                  average='weighted'))
     print()
 
-    scores = precision_recall_fscore_support(Ytest, Yguess, labels=labels)
-    print(pd.DataFrame(scores, columns=labels, index=["Precision", "Recall", "F-score", "Support"]).drop(["Support"]), '\n')
+    scores = precision_recall_fscore_support(Ytest, Yguess,
+                                             labels=labels)
+    print(pd.DataFrame(scores, columns=labels,
+                       index=["Precision", "Recall", "F-score",
+                              "Support"]).drop(["Support"]), '\n')
 
     # Print confusion matrix.
     matrix = confusion_matrix(Ytest, Yguess, labels=labels)
@@ -149,7 +181,8 @@ def main():
 
         # calculate posterior probability
         posterior_proba = (true_pos * prior_proba) /\
-                          ((true_pos * prior_proba) + ((1 - prior_proba) * true_neg))
+                          ((true_pos * prior_proba) +
+                           ((1 - prior_proba) * true_neg))
         print(label, max(posterior_proba))
 
 
