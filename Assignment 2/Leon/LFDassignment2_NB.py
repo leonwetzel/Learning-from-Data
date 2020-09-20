@@ -91,24 +91,18 @@ def main():
         vec = CountVectorizer(preprocessor=identity,
                               tokenizer=identity)
 
-    # TODO: GridSearchCV implementeren
-
-    # Combine the vectorizer with a Naive Bayes classifier
-    classifier = Pipeline([
-        ('vec', vec),
-        ('cls', MultinomialNB())
-    ])
-
+    # setup parameter grid
     parameters = {
         'vec__strip_accents': ['ascii', 'unicode', None],
         'vec__lowercase': [False, True],
         'vec__analyzer': ['word', 'char', 'char_wb'],
-        'vec__stop_words': ['english', None],
+        # 'vec__stop_words': ['english', None],  # causes bugs for strange reasons
         'vec__ngram_range': [(1, 1), (1, 2), (1, 3)],
         'vec__norm': ['l1', 'l2'],
         'clf__alpha': [1.0, 0, 0.5, 0.75],
     }
 
+    # setup classifier pipeline
     pipeline = Pipeline([
         ('vec', vec),
         ('clf', MultinomialNB())
@@ -118,12 +112,13 @@ def main():
     scoring = {'F1': make_scorer(f1_score, average='weighted'),
                'Accuracy': make_scorer(accuracy_score)}
 
+    # cv is limited to 3 for the blackboard submission
     classifier = GridSearchCV(pipeline, parameters,
                               scoring=scoring,
-                              n_jobs=-1, cv=5,
+                              n_jobs=-1, cv=3,
                               return_train_score=False,
                               refit='F1',
-                              verbose=100)
+                              verbose=10)
 
     t0 = time.time()
 
