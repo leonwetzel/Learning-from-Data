@@ -192,7 +192,7 @@ def main():
                            ((1 - prior_proba) * true_neg))
         print(label, max(posterior_proba))
 
-    print(f"Best parameter combination: {classifier.best_params_}")
+    print(f"Best parameter combination: {classifier.get_params()}")
 
 
 if __name__ == '__main__':
