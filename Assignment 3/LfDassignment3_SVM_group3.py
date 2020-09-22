@@ -7,10 +7,11 @@ from sklearn.feature_extraction.text import CountVectorizer, \
     TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import precision_recall_fscore_support, \
-    precision_score, recall_score, f1_score
+    precision_score, recall_score, f1_score, make_scorer
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
 
 import numpy as np
 import pandas as pd
@@ -68,12 +69,12 @@ def main():
                                 " and test file names.")
 
     # Load and split dataset
-    X, Y = read_corpus('trainset.txt')
-    split_point = int(0.75 * len(X))
-    Xtrain = X[:split_point]
-    Ytrain = Y[:split_point]
-    Xtest = X[split_point:]
-    Ytest = Y[split_point:]
+    # X, Y = read_corpus('trainset.txt')
+    # split_point = int(0.75 * len(X))
+    # Xtrain = X[:split_point]
+    # Ytrain = Y[:split_point]
+    # Xtest = X[split_point:]
+    # Ytest = Y[split_point:]
     labels = np.unique(Ytest)
 
     # Let's use the TF-IDF vectorizer
@@ -89,17 +90,30 @@ def main():
                               tokenizer=identity)
 
     # Combine the vectorizer with a Naive Bayes classifier
-    classifier = Pipeline([('vec', vec),
-                           ('cls', SVC(kernel='linear', C=1.0))])
+    pipeline = Pipeline([('vec', vec),
+                         ('clf', SVC())])
 
-    t0 = time.time()
+    parameters = {
+        'clf__kernel': ['linear', 'poly', 'rbf', 'sigmoid',
+                        'precomputed'],
+        'clf__C': [1.0, 100.00, 10.00]
+    }
+
+    # set up scorer, so we can compare both F1 and accuracy scores
+    scoring = {'F1': make_scorer(f1_score, average='weighted'),
+               'Accuracy': make_scorer(accuracy_score)}
+
+    # cv is limited to 3 for the blackboard submission
+    classifier = GridSearchCV(pipeline, parameters,
+                              scoring=scoring,
+                              n_jobs=-1, cv=5,
+                              return_train_score=False,
+                              refit='F1',
+                              verbose=10, error_score=0.0)
 
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
     classifier.fit(Xtrain, Ytrain)
-
-    current_time = time.time() - t0
-    print(current_time)
 
     # Classifier makes a prediction, based on
     # a test sample of documents.
@@ -149,8 +163,10 @@ def main():
         # calculate posterior probability
         posterior_proba = (true_pos * prior_proba) / \
                           ((true_pos * prior_proba) + (
-                                      (1 - prior_proba) * true_neg))
+                                  (1 - prior_proba) * true_neg))
         print(label, max(posterior_proba))
+
+    print(f"Best parameter combination: {classifier.best_params_}")
 
 
 if __name__ == '__main__':

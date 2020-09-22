@@ -71,12 +71,13 @@ def main():
                                 " and test file names.")
 
     # Load and split dataset
-    X, Y = read_corpus('trainset.txt')
-    split_point = int(0.75 * len(X))
-    Xtrain = X[:split_point]
-    Ytrain = Y[:split_point]
-    Xtest = X[split_point:]
-    Ytest = Y[split_point:]
+    # X, Y = read_corpus('trainset.txt')
+    # split_point = int(0.75 * len(X))
+    # Xtrain = X[:split_point]
+    # Ytrain = Y[:split_point]
+    # Xtest = X[split_point:]
+    # Ytest = Y[split_point:]
+
     labels = np.unique(Ytest)
 
     # Let's use the TF-IDF vectorizer
