@@ -94,9 +94,22 @@ def main():
                          ('clf', SVC())])
 
     parameters = {
+        # 'vec__lowercase': [True, False],
+        'vec__analyzer': ['word', 'char'],
+        'vec__ngram_range': [(1,1), (1,2)],
         'clf__kernel': ['linear', 'poly', 'rbf', 'sigmoid',
                         'precomputed'],
-        'clf__C': [1.0, 100.00, 10.00]
+        'clf__C': [0.1, 0.01, 0.001, 100.00, 25.00],
+        'clf__degree': [3, 5, 7, 9],
+        'clf__gamma': ['scale', 'auto'],
+        'clf__coef0': [0.0, 0.1, 0.25, 0.5],
+        'clf__shrinking': [True, False],
+        'clf__probability': [True, False],
+        # 'clf__tol': [],
+        # 'clf__cache_size': [200],  # nog niet aanpassen
+        # 'clf__max_iter': [-1, 10, 100],
+        'clf__decision_function_shape': ['ovr', 'ovo'],
+        # 'clf__break_ties': [True, False],
     }
 
     # set up scorer, so we can compare both F1 and accuracy scores
@@ -106,10 +119,10 @@ def main():
     # cv is limited to 3 for the blackboard submission
     classifier = GridSearchCV(pipeline, parameters,
                               scoring=scoring,
-                              n_jobs=-1, cv=5,
+                              n_jobs=-1, cv=3,
                               return_train_score=False,
                               refit='F1',
-                              verbose=10, error_score=0.0)
+                              verbose=3, error_score=0.0)
 
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
