@@ -95,8 +95,8 @@ def main():
 
     parameters = {
         # 'vec__lowercase': [True, False],
-        'vec__analyzer': ['word', 'char'],
-        'vec__ngram_range': [(1,1), (1,2)],
+        # 'vec__analyzer': ['word', 'char'],
+        # 'vec__ngram_range': [(1,1), (1,2)],
         'clf__kernel': ['linear', 'poly', 'rbf', 'sigmoid',
                         'precomputed'],
         'clf__C': [0.1, 0.01, 0.001, 100.00, 25.00],
