@@ -1,7 +1,7 @@
 import sys
-import time
 import os
-from collections import Counter
+
+from nltk.corpus import stopwords
 
 from sklearn.feature_extraction.text import CountVectorizer, \
     TfidfVectorizer
@@ -12,11 +12,13 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
 
 import numpy as np
 import pandas as pd
 
 pd.set_option("display.max_columns", None)
+stop_words = stopwords.words('english')
 
 
 def read_corpus(corpus_file):
@@ -70,9 +72,9 @@ def main():
 
     # Load and split dataset
     # X, Y = read_corpus('trainset.txt')
-    # split_point = int(0.75 * len(X))
-    # Xtrain = X[:split_point]
-    # Ytrain = Y[:split_point]
+    split_point = int(0.75 * len(Xtrain))
+    Xtrain = Xtrain[:split_point]
+    Ytrain = Ytrain[:split_point]
     # Xtest = X[split_point:]
     # Ytest = Y[split_point:]
     labels = np.unique(Ytest)
@@ -91,38 +93,42 @@ def main():
 
     # Combine the vectorizer with a Naive Bayes classifier
     pipeline = Pipeline([('vec', vec),
+                         # ('scaler', StandardScaler()),
                          ('clf', SVC())])
 
+    # with thanks to
+    # - https://medium.com/all-things-ai/in-depth-parameter-tuning-for-svc-758215394769
     parameters = {
-        # 'vec__lowercase': [True, False],
-        # 'vec__analyzer': ['word', 'char'],
-        # 'vec__ngram_range': [(1,1), (1,2)],
-        'clf__kernel': ['linear', 'poly', 'rbf', 'sigmoid',
-                        'precomputed'],
-        'clf__C': [0.1, 0.01, 0.001, 100.00, 25.00],
-        'clf__degree': [3, 5, 7, 9],
-        'clf__gamma': ['scale', 'auto'],
-        'clf__coef0': [0.0, 0.1, 0.25, 0.5],
-        'clf__shrinking': [True, False],
-        'clf__probability': [True, False],
-        # 'clf__tol': [],
-        # 'clf__cache_size': [200],  # nog niet aanpassen
-        # 'clf__max_iter': [-1, 10, 100],
-        'clf__decision_function_shape': ['ovr', 'ovo'],
-        # 'clf__break_ties': [True, False],
+        'vec__lowercase': [True, False],
+        'vec__analyzer': ['word'],
+        'vec__ngram_range': [(1,1), (1,2), (1,3)],
+        'vec__stop_words': [None, stop_words],
+        #'scaler__with_mean': [False],
+        #'scaler__with_std': [False],
+        'clf__kernel': ['rbf', 'linear'],
+        'clf__C': [0.7, 10],
+        'clf__degree': [1],
+        'clf__gamma': [1.0],
+        'clf__shrinking': [True],
+        'clf__probability': [True],
+        'clf__decision_function_shape': ['ovr'],
     }
+
+    # best params of clf:
+    # {'clf__C': 10, 'clf__decision_function_shape': 'ovr', 'clf__degree': 1, 'clf__gamma': 1.0, 'clf__kernel': 'rbf',
+    # 'clf__probability': True, 'clf__shrinking': True}
 
     # set up scorer, so we can compare both F1 and accuracy scores
     scoring = {'F1': make_scorer(f1_score, average='weighted'),
                'Accuracy': make_scorer(accuracy_score)}
 
-    # cv is limited to 3 for the blackboard submission
     classifier = GridSearchCV(pipeline, parameters,
                               scoring=scoring,
-                              n_jobs=-1, cv=3,
+                              n_jobs=-1, cv=2,
                               return_train_score=False,
                               refit='F1',
-                              verbose=3, error_score=0.0)
+                              verbose=3, error_score=0.0,
+                              pre_dispatch='2*n_jobs')
 
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
@@ -154,30 +160,30 @@ def main():
     print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
 
     # Calculate prior probabilities.
-    print("Prior probability per class")
-    counter = Counter([word for word in Ytest])
-
-    for label, count in counter.items():
-        prior_proba = count / len(Ytest)
-        print(label, prior_proba)
-    print()
-
-    print("Posterior probability per class")
-    for label, count in counter.items():
-        # calculate prior probability
-        prior_proba = count / len(Ytest)
-
-        # determine values from confusion matrix
-        false_pos = matrix.sum(axis=0) - np.diag(matrix)
-        false_neg = matrix.sum(axis=1) - np.diag(matrix)
-        true_pos = np.diag(matrix)
-        true_neg = matrix.sum() - (false_pos + false_neg + true_pos)
-
-        # calculate posterior probability
-        posterior_proba = (true_pos * prior_proba) / \
-                          ((true_pos * prior_proba) + (
-                                  (1 - prior_proba) * true_neg))
-        print(label, max(posterior_proba))
+    # print("Prior probability per class")
+    # counter = Counter([word for word in Ytest])
+    #
+    # for label, count in counter.items():
+    #     prior_proba = count / len(Ytest)
+    #     print(label, prior_proba)
+    # print()
+    #
+    # print("Posterior probability per class")
+    # for label, count in counter.items():
+    #     # calculate prior probability
+    #     prior_proba = count / len(Ytest)
+    #
+    #     # determine values from confusion matrix
+    #     false_pos = matrix.sum(axis=0) - np.diag(matrix)
+    #     false_neg = matrix.sum(axis=1) - np.diag(matrix)
+    #     true_pos = np.diag(matrix)
+    #     true_neg = matrix.sum() - (false_pos + false_neg + true_pos)
+    #
+    #     # calculate posterior probability
+    #     posterior_proba = (true_pos * prior_proba) / \
+    #                       ((true_pos * prior_proba) + (
+    #                               (1 - prior_proba) * true_neg))
+    #     print(label, max(posterior_proba))
 
     print(f"Best parameter combination: {classifier.best_params_}")
 
