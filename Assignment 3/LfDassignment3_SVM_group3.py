@@ -72,9 +72,9 @@ def main():
 
     # Load and split dataset
     # X, Y = read_corpus('trainset.txt')
-    split_point = int(0.75 * len(Xtrain))
-    Xtrain = Xtrain[:split_point]
-    Ytrain = Ytrain[:split_point]
+    # split_point = int(0.75 * len(Xtrain))
+    # Xtrain = Xtrain[:split_point]
+    # Ytrain = Ytrain[:split_point]
     # Xtest = X[split_point:]
     # Ytest = Y[split_point:]
     labels = np.unique(Ytest)
@@ -99,10 +99,10 @@ def main():
     # with thanks to
     # - https://medium.com/all-things-ai/in-depth-parameter-tuning-for-svc-758215394769
     parameters = {
-        'vec__lowercase': [True, False],
+        'vec__lowercase': [True],
         'vec__analyzer': ['word'],
         'vec__ngram_range': [(1,1), (1,2), (1,3)],
-        'vec__stop_words': [None, stop_words],
+        'vec__stop_words': [None],
         #'scaler__with_mean': [False],
         #'scaler__with_std': [False],
         'clf__kernel': ['rbf', 'linear'],
