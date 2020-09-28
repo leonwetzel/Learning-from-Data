@@ -12,7 +12,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import StandardScaler
 
 import numpy as np
 import pandas as pd
@@ -70,65 +69,48 @@ def main():
         raise FileNotFoundError("Please enter both training"
                                 " and test file names.")
 
-    # Load and split dataset
-    # X, Y = read_corpus('trainset.txt')
-    # split_point = int(0.75 * len(Xtrain))
-    # Xtrain = Xtrain[:split_point]
-    # Ytrain = Ytrain[:split_point]
-    # Xtest = X[split_point:]
-    # Ytest = Y[split_point:]
     labels = np.unique(Ytest)
 
-    # Let's use the TF-IDF vectorizer
-    tfidf = True
+    vec = TfidfVectorizer(preprocessor=identity,
+                            tokenizer=identity, lowercase=True,
+                            analyzer='word', ngram_range=(1,3),
+                            stop_words=None)
 
-    # We use a dummy function as tokenizer and preprocessor,
-    # since the texts are already preprocessed and tokenized.
-    if tfidf:
-        vec = TfidfVectorizer(preprocessor=identity,
-                              tokenizer=identity)
-    else:
-        vec = CountVectorizer(preprocessor=identity,
-                              tokenizer=identity)
+    svc = SVC(kernel='linear', C=10, degree=1, gamma=1,
+              shrinking=True, probability=True,
+              decision_function_shape='ovr')
 
     # Combine the vectorizer with a Naive Bayes classifier
-    pipeline = Pipeline([('vec', vec),
-                         # ('scaler', StandardScaler()),
-                         ('clf', SVC())])
+    classifier = Pipeline([('vec', vec),
+                         ('clf', svc)])
 
     # with thanks to
     # - https://medium.com/all-things-ai/in-depth-parameter-tuning-for-svc-758215394769
-    parameters = {
-        'vec__lowercase': [True],
-        'vec__analyzer': ['word'],
-        'vec__ngram_range': [(1,1), (1,2), (1,3)],
-        'vec__stop_words': [None],
-        #'scaler__with_mean': [False],
-        #'scaler__with_std': [False],
-        'clf__kernel': ['rbf', 'linear'],
-        'clf__C': [0.7, 10],
-        'clf__degree': [1],
-        'clf__gamma': [1.0],
-        'clf__shrinking': [True],
-        'clf__probability': [True],
-        'clf__decision_function_shape': ['ovr'],
-    }
-
-    # best params of clf:
-    # {'clf__C': 10, 'clf__decision_function_shape': 'ovr', 'clf__degree': 1, 'clf__gamma': 1.0, 'clf__kernel': 'rbf',
-    # 'clf__probability': True, 'clf__shrinking': True}
+    # parameters = {
+    #     'vec__lowercase': [True],
+    #     'vec__analyzer': ['word'],
+    #     'vec__ngram_range': [(1,1), (1,2), (1,3)],
+    #     'vec__stop_words': [None],
+    #     'clf__kernel': ['rbf', 'linear'],
+    #     'clf__C': [0.7, 10],
+    #     'clf__degree': [1],
+    #     'clf__gamma': [1.0],
+    #     'clf__shrinking': [True],
+    #     'clf__probability': [True],
+    #     'clf__decision_function_shape': ['ovr'],
+    # }
 
     # set up scorer, so we can compare both F1 and accuracy scores
-    scoring = {'F1': make_scorer(f1_score, average='weighted'),
-               'Accuracy': make_scorer(accuracy_score)}
-
-    classifier = GridSearchCV(pipeline, parameters,
-                              scoring=scoring,
-                              n_jobs=-1, cv=2,
-                              return_train_score=False,
-                              refit='F1',
-                              verbose=3, error_score=0.0,
-                              pre_dispatch='2*n_jobs')
+    # scoring = {'F1': make_scorer(f1_score, average='weighted'),
+    #            'Accuracy': make_scorer(accuracy_score)}
+    #
+    # classifier = GridSearchCV(pipeline, parameters,
+    #                           scoring=scoring,
+    #                           n_jobs=-1, cv=2,
+    #                           return_train_score=False,
+    #                           refit='F1',
+    #                           verbose=3, error_score=0.0,
+    #                           pre_dispatch='2*n_jobs')
 
     # Trains the classifier, by feeding documents (X)
     # and labels (y).
@@ -159,33 +141,7 @@ def main():
     matrix = confusion_matrix(Ytest, Yguess, labels=labels)
     print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
 
-    # Calculate prior probabilities.
-    # print("Prior probability per class")
-    # counter = Counter([word for word in Ytest])
-    #
-    # for label, count in counter.items():
-    #     prior_proba = count / len(Ytest)
-    #     print(label, prior_proba)
-    # print()
-    #
-    # print("Posterior probability per class")
-    # for label, count in counter.items():
-    #     # calculate prior probability
-    #     prior_proba = count / len(Ytest)
-    #
-    #     # determine values from confusion matrix
-    #     false_pos = matrix.sum(axis=0) - np.diag(matrix)
-    #     false_neg = matrix.sum(axis=1) - np.diag(matrix)
-    #     true_pos = np.diag(matrix)
-    #     true_neg = matrix.sum() - (false_pos + false_neg + true_pos)
-    #
-    #     # calculate posterior probability
-    #     posterior_proba = (true_pos * prior_proba) / \
-    #                       ((true_pos * prior_proba) + (
-    #                               (1 - prior_proba) * true_neg))
-    #     print(label, max(posterior_proba))
-
-    print(f"Best parameter combination: {classifier.best_params_}")
+    # print(f"Best parameter combination: {classifier.best_params_}")
 
 
 if __name__ == '__main__':
