@@ -1,4 +1,5 @@
 import numpy, json, argparse
+import pandas as pd
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.optimizers import SGD
@@ -6,6 +7,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import LabelBinarizer
 numpy.random.seed(1337)
 from collections import Counter
@@ -55,6 +57,7 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	# Read in the data and embeddings
 	X, Y = read_corpus(args.data, binary_classes = args.binary)
+	labels = numpy.unique(Y)
 	embeddings = read_embeddings(args.embeddings)
 	# Transform words to embeddings
 	X = vectorizer(X, embeddings)
@@ -83,15 +86,19 @@ if __name__ == '__main__':
 	# Convert to numerical labels to get scores with sklearn in 6-way setting
 	Yguess = numpy.argmax(Yguess, axis = 1)
 	Ytest = numpy.argmax(Ytest, axis = 1)
-	print('Classification accuracy on test: {0}'.format(accuracy_score(Ytest, Yguess)))
+	print('Classification accuracy on test: {0}'.format(accuracy_score(y_true=Ytest, y_pred=Yguess)))
 	#use macro to value categories evenly, because of uneven distribution
-	print('Classification precision on test: {0}'.format(precision_score(Ytest, Yguess, average = 'macro')))
-	print('Classification recall on test: {0}'.format(recall_score(Ytest, Yguess, average = 'macro')))
-	print('Classification F1-score on test: {0}'.format(f1_score(Ytest, Yguess, average = 'macro')))
+	print('Classification precision on test: {0}'.format(precision_score(y_true=Ytest, y_pred=Yguess, average = 'macro')))
+	print('Classification recall on test: {0}'.format(recall_score(y_true=Ytest, y_pred=Yguess, average = 'macro')))
+	print('Classification F1-score on test: {0}'.format(f1_score(y_true=Ytest, y_pred=Yguess, average = 'macro')))
 	#Baseline binary classification: 17783/26696 = 0.66 (most frequent class: non-loc)
 	#Binary scores: accuracy = 0.92, precision = 0.91, recall = 0.92, f1 = 0.92 
 	#Baseline multiclass classification: 8477/26696 = 0.32 (most frequent class: GPE)
-	#Multiclass scores: accuracy = 0.65, precision = 0.62, recall = 0.62, f1 = 0.61
+	#Multiclass scores: accuracy = 0.65, precision = 0.56, recall = 0.55, f1 = 0.55
+	Ytest_inverse = encoder.inverse_transform(Ytest)
+	Yguess_inverse = encoder.inverse_transform(Yguess)
+	matrix = confusion_matrix(y_true=Ytest_inverse, y_pred=Yguess_inverse, labels=labels)
+	print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
 
 	
 	
