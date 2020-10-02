@@ -83,6 +83,10 @@ if __name__ == '__main__':
 	model.fit(Xtrain, Ytrain, verbose = 1, epochs = 1, batch_size = 32)
 	# Get predictions
 	Yguess = model.predict(Xtest)
+	Ytest_inverse = encoder.inverse_transform(Ytest)
+	Yguess_inverse = encoder.inverse_transform(Yguess)
+	matrix = confusion_matrix(y_true=Ytest_inverse, y_pred=Yguess_inverse, labels=labels)
+	print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
 	# Convert to numerical labels to get scores with sklearn in 6-way setting
 	Yguess = numpy.argmax(Yguess, axis = 1)
 	Ytest = numpy.argmax(Ytest, axis = 1)
@@ -91,14 +95,11 @@ if __name__ == '__main__':
 	print('Classification precision on test: {0}'.format(precision_score(y_true=Ytest, y_pred=Yguess, average = 'macro')))
 	print('Classification recall on test: {0}'.format(recall_score(y_true=Ytest, y_pred=Yguess, average = 'macro')))
 	print('Classification F1-score on test: {0}'.format(f1_score(y_true=Ytest, y_pred=Yguess, average = 'macro')))
-	#Baseline binary classification: 17783/26696 = 0.66 (most frequent class: non-loc)
+	#Baseline binary classification: 17783/26696 = 0.66 (most frequent class: loc)
 	#Binary scores: accuracy = 0.92, precision = 0.91, recall = 0.92, f1 = 0.92 
 	#Baseline multiclass classification: 8477/26696 = 0.32 (most frequent class: GPE)
 	#Multiclass scores: accuracy = 0.65, precision = 0.56, recall = 0.55, f1 = 0.55
-	Ytest_inverse = encoder.inverse_transform(Ytest)
-	Yguess_inverse = encoder.inverse_transform(Yguess)
-	matrix = confusion_matrix(y_true=Ytest_inverse, y_pred=Yguess_inverse, labels=labels)
-	print(pd.DataFrame(matrix, index=labels, columns=labels), '\n')
+
 
 	
 	
